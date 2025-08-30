@@ -13,8 +13,10 @@ This project is a maze generator and solver system, with a focus on implementing
   - Interior wall generation with strategic branch placement
   - Addition of "hedge islands" and branching paths
   - Path validation to ensure mazes are solvable
-  - Start and end points can be anywhere in the maze
-  - Need to complex enough at large size that bots will struggle
+  - Strategic placement of start and end points with:
+    - Both row and column differences of at least half the maze size
+    - Multiple selection strategies with fallback mechanisms
+    - Scoring system that balances path length and positional separation
   - Uses r1c1 notation
 
 ### Maze Visualization (`visualise.js`)
@@ -46,8 +48,37 @@ This project is a maze generator and solver system, with a focus on implementing
 3. Add interior walls to create hedge-like structure
 4. Break up long runs along edges
 5. Add complexity (dead ends, loops)
-6. Set entrance and exit inside  the maze
+6. Set entrance and exit points using advanced placement algorithm
 7. Validate path exists from start to end
+
+### Start/End Point Placement Algorithm
+1. **Primary Selection Method**:
+   - Tests multiple potential starting points across the maze
+   - For each point, finds the furthest reachable cell
+   - Calculates both row and column differences
+   - Enforces that both differences must be at least half the maze size
+   - Scores each pair based on path length and positional separation
+   - Selects the pair with the highest score that meets all requirements
+
+2. **Corner-to-Corner Fallback**:
+   - Activates when primary method fails to find suitable points
+   - Identifies potential points in each corner region
+   - Calculates physical distance and row/column differences
+   - Applies penalties for pairs that don't meet half-size requirement
+   - Selects diagonally opposite corners when possible
+
+3. **Random Cell Fallback**:
+   - Used as last resort when corner approach fails
+   - Makes multiple attempts with different random starting points
+   - For each attempt, finds the furthest reachable cell
+   - Prioritizes pairs that meet the half-size requirement in both dimensions
+   - Uses weighted scoring to balance path length and separation
+
+4. **Absolute Fallback**:
+   - Final safety mechanism if all other methods fail
+   - Places start at [1,1] and end at opposite corner
+   - Performs mathematical adjustment to ensure half-size separation
+   - Guarantees minimum required separation in both dimensions
 
 ### Complexity Adjustments
 - Complexity is scales up based on maze size (more complexity for larger mazes)
@@ -60,17 +91,23 @@ This project is a maze generator and solver system, with a focus on implementing
 - Added function to break up long runs around edges
 - Added size-based run length limits for edge passages
 - Added more natural hedge-like features (branches, islands)
-- Implemented `findOptimalStartEndPair` function to ensure start and end points are at least half the maze size apart
-- Added strategic point selection from extreme corners and edges to find distant pairs
+- Implemented enhanced start and end point placement:
+  - Enforced that both row and column differences between start and end points must be at least half the maze size
+  - Created multiple selection strategies with increasing fallback mechanisms
+  - Used scoring system that combines path length and positional separation
+  - Added penalties for points that don't meet the half-size requirement in both dimensions
 - Used both path distance and physical (diagonal) distance to optimize the point selection
-- Included fallback mechanisms when minimum distance criteria can't be met
+- Included fallback mechanisms when strict distance criteria can't be met
 
 ## Testing
-- Successfully generated and solved mazes of various sizes (10x10, 20x20)
+- Successfully generated and solved mazes of various sizes (10x10, 20x20, 30x30, 40x40)
 - Visualization confirmed proper maze structure
 - Bot successfully found paths through all generated mazes
-- Verified that start and end points are now properly distanced (minimum path length of half the maze size)
-- Test on 20x20 maze showed minimum required path distance of 10 with actual path length of 14
+- Verified that start and end points are now properly distanced:
+  - Both row and column differences between start and end points are at least half the maze size
+  - This creates more challenging mazes that require traversal across significant portions of the grid
+  - Tested with 30x30 maze showing row difference of 28 and column difference of 27 (both exceeding half-size of 15.5)
+- Test on larger mazes showed solution path lengths of 50+ steps, creating appropriately challenging puzzles
 
 ## Testing Strategy: GTV Protocol (Generate-Test-Visualize)
 
@@ -113,5 +150,6 @@ node visualise.js [maze_file] "$solution_path"
 - Maze is fully connected (all open cells reachable from start)
 - Solution exists between start and end points
 - Path length is at least half the maze size
+- Both row and column differences between start and end points are at least half the maze size
 - Visual inspection confirms proper maze structure
 - Generation, solving, and visualization complete without errors

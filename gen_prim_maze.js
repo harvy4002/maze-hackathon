@@ -8,13 +8,21 @@
 const fs = require('fs');
 
 // Validate command line arguments
-if (process.argv.length < 4) {
-  console.error('Usage: node gen_prim_maze.js <outputFile> <size>');
+if (process.argv.length < 3) {
+  console.error('Usage: node gen_prim_maze.js [outputFile] <size>');
   process.exit(1);
 }
 
-const outputFile = process.argv[2];
-const size = parseInt(process.argv[3]);
+// Check if only size is provided
+let outputFile, size;
+if (process.argv.length === 3) {
+  size = parseInt(process.argv[2]);
+  const sizeMultiple = Math.round(size / 10);
+  outputFile = `mazes/maze${sizeMultiple}.json`;
+} else {
+  outputFile = process.argv[2];
+  size = parseInt(process.argv[3]);
+}
 
 // Validate size
 if (isNaN(size) || size < 5) {
@@ -261,21 +269,34 @@ function breakUpEdgeRuns(grid, width, height) {
 }
 
 /**
- * Add complexity to the maze by adding some dead ends and loops
+ * Add complexity to the maze by adding strategic dead ends, loops, and obstacles
  * @param {Array} grid - The maze grid
  * @param {number} width - The width of the maze
  * @param {number} height - The height of the maze
+ * @param {Object} options - Optional configuration {start, end}
  */
-function addMazeComplexity(grid, width, height) {
-  // Reduce complexity factor for larger mazes
-  const sizeFactor = Math.min(1.0, 15 / Math.max(width, height));
+function addMazeComplexity(grid, width, height, options = {}) {
+  const { start, end } = options;
+  
+  // Calculate complexity factor with a higher minimum for more challenging mazes
+  const baseSizeFactor = Math.min(1.0, 15 / Math.max(width, height));
+  const sizeFactor = Math.max(baseSizeFactor, 0.4); // Minimum 0.4 complexity factor
+  
+  // Increase dead end count for more challenging mazes
+  const deadEndCount = Math.floor(width * height * 0.08 * sizeFactor);
+  console.log(`Adding ${deadEndCount} dead ends to increase maze complexity`);
   
   // Add some dead ends by adding walls
-  const deadEndCount = Math.floor(width * height * 0.05 * sizeFactor);
   for (let i = 0; i < deadEndCount; i++) {
     // Pick a random position (not on the edge)
     const y = 1 + Math.floor(Math.random() * (height - 2));
     const x = 1 + Math.floor(Math.random() * (width - 2));
+    
+    // Skip if this is the start or end point
+    if (start && end && 
+        ((y === start[0] && x === start[1]) || (y === end[0] && x === end[1]))) {
+      continue;
+    }
     
     // Only add walls if it's a passage and wouldn't completely block a path
     if (grid[y][x] === 0) {
@@ -294,8 +315,47 @@ function addMazeComplexity(grid, width, height) {
     }
   }
   
-  // Add some loops by removing walls
-  const loopCount = Math.floor(width * height * 0.01 * sizeFactor);
+  // Add strategic obstacles along potential direct paths between start and end
+  if (start && end) {
+    // Create a more challenging path by adding walls along the direct line
+    // between start and end (with some randomness to avoid blocking all paths)
+    const pathObstacleCount = Math.floor(Math.max(width, height) * 0.3);
+    
+    for (let i = 0; i < pathObstacleCount; i++) {
+      // Interpolate between start and end with some random offset
+      const ratio = Math.random();
+      const offsetX = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+      const offsetY = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+      
+      const y = Math.floor(start[0] + ratio * (end[0] - start[0])) + offsetY;
+      const x = Math.floor(start[1] + ratio * (end[1] - start[1])) + offsetX;
+      
+      // Ensure we're within bounds and not on start/end
+      if (y > 0 && y < height - 1 && x > 0 && x < width - 1 &&
+          !(y === start[0] && x === start[1]) && 
+          !(y === end[0] && x === end[1]) && 
+          grid[y][x] === 0) {
+        
+        // Check if adding this wall would maintain connectivity
+        let passages = 0;
+        if (grid[y - 1][x] === 0) passages++;
+        if (grid[y + 1][x] === 0) passages++;
+        if (grid[y][x - 1] === 0) passages++;
+        if (grid[y][x + 1] === 0) passages++;
+        
+        // Only add wall if it won't block the only path
+        if (passages >= 3) {
+          grid[y][x] = 1;
+        }
+      }
+    }
+  }
+  
+  // Add some loops by removing walls (more strategically)
+  // This creates alternative paths, making the maze more interesting
+  const loopCount = Math.floor(width * height * 0.02 * sizeFactor);
+  console.log(`Adding ${loopCount} loops for path diversity`);
+  
   for (let i = 0; i < loopCount; i++) {
     // Pick a random position (not on the edge)
     const y = 1 + Math.floor(Math.random() * (height - 2));
@@ -317,13 +377,59 @@ function addMazeComplexity(grid, width, height) {
     }
   }
   
+  // Add more hedge islands to create obstacles
+  const islandCount = Math.floor(width * height * 0.03 * sizeFactor);
+  console.log(`Adding ${islandCount} hedge islands as obstacles`);
+  
+  for (let i = 0; i < islandCount; i++) {
+    // Pick a random position (not on the edge)
+    const y = 2 + Math.floor(Math.random() * (height - 4));
+    const x = 2 + Math.floor(Math.random() * (width - 4));
+    
+    // Skip if this is the start or end point
+    if (start && end && 
+        ((y === start[0] && x === start[1]) || (y === end[0] && x === end[1]))) {
+      continue;
+    }
+    
+    // Only add islands in passages and if it won't block the only path
+    if (grid[y][x] === 0) {
+      // Count adjacent passages
+      let passages = 0;
+      if (grid[y - 1][x] === 0) passages++;
+      if (grid[y + 1][x] === 0) passages++;
+      if (grid[y][x - 1] === 0) passages++;
+      if (grid[y][x + 1] === 0) passages++;
+      
+      // Only add an island if there are at least 3 adjacent passages
+      if (passages >= 3) {
+        grid[y][x] = 1;
+        
+        // Occasionally add an extended island (2x1 or 1x2)
+        if (Math.random() < 0.3) {
+          const direction = Math.floor(Math.random() * 4);
+          const dy = [0, 1, 0, -1][direction];
+          const dx = [1, 0, -1, 0][direction];
+          
+          const ny = y + dy;
+          const nx = x + dx;
+          
+          if (ny > 0 && ny < height - 1 && nx > 0 && nx < width - 1 && 
+              grid[ny][nx] === 0 && 
+              !(start && end && ((ny === start[0] && nx === start[1]) || (ny === end[0] && nx === end[1])))) {
+            grid[ny][nx] = 1;
+          }
+        }
+      }
+    }
+  }
+  
   // Break up long runs along the edges
   breakUpEdgeRuns(grid, width, height);
 }
 
 /**
- * Find start and end points that maximize the path length
- * Ensures points are at least half the maze size apart
+ * Find optimal start and end points for the maze using enhanced diameter search
  * @param {Array} grid - The maze grid
  * @param {number} height - The height of the maze
  * @param {number} width - The width of the maze
@@ -350,7 +456,7 @@ function findOptimalStartEndPair(grid, height, width) {
   }
   
   // Helper function to find the furthest cell from a starting cell
-  function findFurthestCell(startCell) {
+  function findFurthestCell(startCell, cellList) {
     const distances = new Map();
     const queue = [[startCell[0], startCell[1], 0]]; // [y, x, distance]
     const visited = new Set(`${startCell[0]},${startCell[1]}`);
@@ -379,23 +485,41 @@ function findOptimalStartEndPair(grid, height, width) {
       }
     }
     
-    // Find the cell that's furthest away, prioritizing cells that are also physically distant
+    // Find the cell that's furthest away with weighted scoring
     let maxScore = 0;
     let furthestCell = null;
     
-    for (const [y, x] of openCells) {
+    for (const [y, x] of cellList) {
+      // Skip the starting cell itself
+      if (y === startCell[0] && x === startCell[1]) continue;
+      
       const key = `${y},${x}`;
       const pathDist = distances.get(key) || 0;
-      if (pathDist === 0) continue; // Skip unreachable cells
       
-      // Calculate physical (diagonal) distance as well to break ties
-      const diagDist = Math.sqrt(
+      // Skip unreachable cells or cells with 0 distance
+      if (pathDist === 0) continue;
+      
+      // Calculate physical distance (diagonal)
+      const physicalDist = Math.sqrt(
         Math.pow(y - startCell[0], 2) + 
         Math.pow(x - startCell[1], 2)
       );
       
-      // Score is primarily based on path distance, but break ties with diagonal distance
-      const score = pathDist * 1000 + diagDist;
+      // Penalize points that are in the same row or column (or close to it)
+      const rowColumnPenalty = Math.min(
+        Math.abs(y - startCell[0]),  // Row difference
+        Math.abs(x - startCell[1])   // Column difference
+      );
+      
+      // Add a significant penalty if the points are in a similar row or column
+      // Higher penalty for being in the same row/column, less penalty for being close
+      const alignmentPenalty = rowColumnPenalty <= 2 ? 15 - (rowColumnPenalty * 5) : 0;
+      
+      // Calculate a score that heavily weights path distance but also considers physical distance
+      // Path distance is the primary factor (multiplied by 3)
+      // Physical distance is a secondary factor to break ties and favor spread-out points
+      // Subtract the alignment penalty to discourage same row/column placements
+      const score = (pathDist * 3) + physicalDist - alignmentPenalty;
       
       if (score > maxScore) {
         maxScore = score;
@@ -404,187 +528,316 @@ function findOptimalStartEndPair(grid, height, width) {
     }
     
     return { 
-      cell: furthestCell, 
-      distance: furthestCell ? distances.get(`${furthestCell[0]},${furthestCell[1]}`) : 0 
+      cell: furthestCell,
+      distance: furthestCell ? distances.get(`${furthestCell[0]},${furthestCell[1]}`) : 0,
+      score: maxScore
     };
   }
   
-  // Generate strategic starting points from extreme corners and edges
+  // ENHANCED MULTI-PASS DIAMETER SEARCH ALGORITHM
+  console.log("Using enhanced multi-pass diameter search algorithm");
+  
+  // Step 1: Identify strategic starting points from edges and corners
   const strategicPoints = [];
   
-  // Define small extreme corner regions
+  // Add corner regions
   const cornerRegions = [
-    {minY: 1, maxY: Math.min(10, Math.floor(height * 0.1)), minX: 1, maxX: Math.min(10, Math.floor(width * 0.1))},
-    {minY: 1, maxY: Math.min(10, Math.floor(height * 0.1)), minX: Math.max(width - 11, width - Math.floor(width * 0.1) - 1), maxX: width - 2},
-    {minY: Math.max(height - 11, height - Math.floor(height * 0.1) - 1), maxY: height - 2, minX: 1, maxX: Math.min(10, Math.floor(width * 0.1))},
-    {minY: Math.max(height - 11, height - Math.floor(height * 0.1) - 1), maxY: height - 2, minX: Math.max(width - 11, width - Math.floor(width * 0.1) - 1), maxX: width - 2}
+    // Top-left corner
+    {minY: 1, maxY: Math.min(5, Math.floor(height * 0.2)), minX: 1, maxX: Math.min(5, Math.floor(width * 0.2))},
+    // Top-right corner
+    {minY: 1, maxY: Math.min(5, Math.floor(height * 0.2)), minX: Math.max(width - 6, width - Math.floor(width * 0.2) - 1), maxX: width - 2},
+    // Bottom-left corner
+    {minY: Math.max(height - 6, height - Math.floor(height * 0.2) - 1), maxY: height - 2, minX: 1, maxX: Math.min(5, Math.floor(width * 0.2))},
+    // Bottom-right corner
+    {minY: Math.max(height - 6, height - Math.floor(height * 0.2) - 1), maxY: height - 2, minX: Math.max(width - 6, width - Math.floor(width * 0.2) - 1), maxX: width - 2}
   ];
   
-  // Also add some points from the middle of each edge
+  // Add edge regions (middle of each edge)
   const edgeRegions = [
-    {minY: 1, maxY: Math.min(10, Math.floor(height * 0.1)), minX: Math.floor(width * 0.45), maxX: Math.floor(width * 0.55)},
-    {minY: Math.max(height - 11, height - Math.floor(height * 0.1) - 1), maxY: height - 2, minX: Math.floor(width * 0.45), maxX: Math.floor(width * 0.55)},
-    {minY: Math.floor(height * 0.45), maxY: Math.floor(height * 0.55), minX: 1, maxX: Math.min(10, Math.floor(width * 0.1))},
-    {minY: Math.floor(height * 0.45), maxY: Math.floor(height * 0.55), minX: Math.max(width - 11, width - Math.floor(width * 0.1) - 1), maxX: width - 2}
+    // Top edge
+    {minY: 1, maxY: Math.min(3, Math.floor(height * 0.1)), minX: Math.floor(width * 0.4), maxX: Math.floor(width * 0.6)},
+    // Bottom edge
+    {minY: Math.max(height - 4, height - Math.floor(height * 0.1) - 1), maxY: height - 2, minX: Math.floor(width * 0.4), maxX: Math.floor(width * 0.6)},
+    // Left edge
+    {minY: Math.floor(height * 0.4), maxY: Math.floor(height * 0.6), minX: 1, maxX: Math.min(3, Math.floor(width * 0.1))},
+    // Right edge
+    {minY: Math.floor(height * 0.4), maxY: Math.floor(height * 0.6), minX: Math.max(width - 4, width - Math.floor(width * 0.1) - 1), maxX: width - 2}
   ];
   
-  // Combine corner and edge regions
-  const allRegions = [...cornerRegions, ...edgeRegions];
-  
-  // Find open cells in each region
-  for (const region of allRegions) {
-    const regionCells = [];
+  // Collect open cells from each strategic region
+  for (const region of [...cornerRegions, ...edgeRegions]) {
     for (let y = region.minY; y <= region.maxY; y++) {
       for (let x = region.minX; x <= region.maxX; x++) {
         if (y < height && x < width && grid[y][x] === 0) {
-          regionCells.push([y, x]);
+          strategicPoints.push([y, x]);
         }
       }
     }
-    
-    // If we found open cells in this region, add some to our strategic points
-    if (regionCells.length > 0) {
-      // Add up to 5 random cells from this region
-      for (let i = 0; i < Math.min(5, regionCells.length); i++) {
-        const randomIndex = Math.floor(Math.random() * regionCells.length);
-        strategicPoints.push(regionCells[randomIndex]);
-        regionCells.splice(randomIndex, 1);
-      }
+  }
+  
+  // Add random interior points for diversity
+  const interiorPoints = [];
+  for (let i = 0; i < Math.min(30, Math.floor(openCells.length * 0.15)); i++) {
+    const randomIndex = Math.floor(Math.random() * openCells.length);
+    interiorPoints.push(openCells[randomIndex]);
+  }
+  
+  // If we didn't find enough strategic points, use random points
+  if (strategicPoints.length < 10) {
+    console.log("Not enough strategic edge/corner points found, using random points");
+    for (let i = 0; i < 20; i++) {
+      const randomIndex = Math.floor(Math.random() * openCells.length);
+      strategicPoints.push(openCells[randomIndex]);
     }
   }
   
-  // Add a few random points from throughout the maze for diversity
-  const randomPointCount = 10;
-  const openCellsCopy = [...openCells];
-  for (let i = 0; i < randomPointCount && openCellsCopy.length > 0; i++) {
-    const randomIndex = Math.floor(Math.random() * openCellsCopy.length);
-    strategicPoints.push(openCellsCopy[randomIndex]);
-    openCellsCopy.splice(randomIndex, 1);
-  }
+  // Combine all potential starting points
+  const startingPoints = [...strategicPoints, ...interiorPoints];
+  console.log(`Testing ${startingPoints.length} potential starting points`);
   
-  console.log(`Testing ${strategicPoints.length} strategic points to find optimal start/end positions`);
-  
-  // Calculate minimum required distance (half the maze size)
-  const minRequiredDistance = Math.max(Math.floor(height / 2), Math.floor(width / 2));
-  console.log(`Minimum required path distance: ${minRequiredDistance}`);
-  
-  // For each strategic point, find the furthest cell
-  let maxPathLength = 0;
+  // Step 2: Try multiple diameter searches and keep the best result
   let bestStart = null;
   let bestEnd = null;
+  let maxPathLength = 0;
   
-  for (const startPoint of strategicPoints) {
-    const result = findFurthestCell(startPoint);
+  // Set a minimum required path length based on maze size
+  const minRequiredLength = Math.max(Math.floor(Math.max(height, width) * 0.7), 5);
+  console.log(`Minimum required path length: ${minRequiredLength}`);
+  
+  // Set minimum required difference for half-size requirement
+  const minRequiredDiff = Math.floor(Math.max(width, height) / 2);
+  
+  for (const startPoint of startingPoints) {
+    // First pass: find furthest point from this starting point
+    const pointAResult = findFurthestCell(startPoint, openCells);
+    if (!pointAResult.cell) continue;
     
-    // Only consider pairs that meet the minimum distance requirement
-    if (result.distance >= minRequiredDistance && result.cell) {
-      if (result.distance > maxPathLength) {
-        maxPathLength = result.distance;
-        bestStart = startPoint;
-        bestEnd = result.cell;
+    // Second pass: find furthest point from point A
+    const pointBResult = findFurthestCell(pointAResult.cell, openCells);
+    if (!pointBResult.cell) continue;
+    
+    // Check if this pair meets the half-size separation requirement
+    const rowDiff = Math.abs(pointAResult.cell[0] - pointBResult.cell[0]);
+    const colDiff = Math.abs(pointAResult.cell[1] - pointBResult.cell[1]);
+    // Both row AND column must meet the half-size requirement
+    const hasRequiredSeparation = rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff;
+    
+    // Calculate a score that combines path length and separation
+    const separationBonus = hasRequiredSeparation ? 100 : 0;
+    const effectiveScore = pointBResult.distance + separationBonus;
+    
+    // Update best result if this pair has a higher score
+    if (effectiveScore > maxPathLength) {
+      maxPathLength = effectiveScore;
+      bestStart = pointAResult.cell;
+      bestEnd = pointBResult.cell;
+      
+      // Early exit if we found a very good path with required separation
+      if (hasRequiredSeparation && pointBResult.distance >= minRequiredLength) {
+        console.log(`Found optimal path (${pointBResult.distance} steps) with half-size separation, using it`);
+        break;
       }
     }
   }
   
-  // Use the pair with the longest path (if it meets minimum distance)
+  // If we found a good path, use it
   if (bestStart && bestEnd) {
-    console.log(`Found start/end pair with estimated path length of ${maxPathLength}`);
-    return {
-      start: bestStart,
-      end: bestEnd
-    };
-  } else {
-    // No pair met the minimum distance criteria, retry with more points
-    console.log(`No pairs met the minimum distance of ${minRequiredDistance}, trying again with more points`);
+    // Check if the pair meets the half-size separation requirement
+    const rowDiff = Math.abs(bestStart[0] - bestEnd[0]);
+    const colDiff = Math.abs(bestStart[1] - bestEnd[1]);
+    // Both row AND column must meet the half-size requirement
+    const hasRequiredSeparation = rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff;
     
-    // Add more points to increase chances of finding a suitable pair
-    const additionalPoints = [];
-    // Add points from all over the maze
-    for (let i = 0; i < Math.min(50, openCells.length / 4); i++) {
-      if (openCellsCopy.length === 0) break;
-      const randomIndex = Math.floor(Math.random() * openCellsCopy.length);
-      additionalPoints.push(openCellsCopy.splice(randomIndex, 1)[0]);
-    }
+    const realDistance = findFurthestCell(bestStart, [bestEnd]).distance;
     
-    // Try with the additional points
-    for (const startPoint of additionalPoints) {
-      const result = findFurthestCell(startPoint);
-      
-      if (result.distance >= minRequiredDistance && result.cell) {
-        if (result.distance > maxPathLength) {
-          maxPathLength = result.distance;
-          bestStart = startPoint;
-          bestEnd = result.cell;
-        }
-      }
-    }
-    
-    if (bestStart && bestEnd) {
-      console.log(`Found start/end pair with estimated path length of ${maxPathLength} after expansion`);
+    if (hasRequiredSeparation && realDistance >= minRequiredLength) {
+      console.log(`Found optimal start/end pair with path length of ${realDistance}`);
+      console.log(`Start: [${bestStart[0]}, ${bestStart[1]}], End: [${bestEnd[0]}, ${bestEnd[1]}]`);
+      console.log(`Row difference: ${rowDiff}, Column difference: ${colDiff}`);
       return {
         start: bestStart,
         end: bestEnd
       };
-    } else {
-      // After trying with expanded points, still couldn't meet the criteria
-      // Fall back to using the best pair we found regardless of the distance
-      let fallbackBestStart = null;
-      let fallbackBestEnd = null;
-      let fallbackMaxLength = 0;
-      
-      // Find the best overall pair ignoring the minimum distance
-      for (const startPoint of [...strategicPoints, ...additionalPoints]) {
-        const result = findFurthestCell(startPoint);
-        if (result.distance > fallbackMaxLength && result.cell) {
-          fallbackMaxLength = result.distance;
-          fallbackBestStart = startPoint;
-          fallbackBestEnd = result.cell;
-        }
-      }
-      
-      if (fallbackBestStart && fallbackBestEnd) {
-        console.log(`Falling back to start/end pair with path length ${fallbackMaxLength} (below minimum)`);
-        return {
-          start: fallbackBestStart,
-          end: fallbackBestEnd
-        };
-      }
-      
-      // If everything fails, just pick random points
-      console.log("Using random start/end positions as last resort");
-      const randomIndex1 = Math.floor(Math.random() * openCells.length);
-      let randomIndex2 = Math.floor(Math.random() * openCells.length);
-      
-      // Try to ensure the random points are physically distant
-      let bestRandomDist = 0;
-      let bestRandomPair = [randomIndex1, randomIndex2];
-      
-      // Try several random pairs to find physically distant ones
-      for (let i = 0; i < 20; i++) {
-        const idx1 = Math.floor(Math.random() * openCells.length);
-        const idx2 = Math.floor(Math.random() * openCells.length);
-        
-        if (idx1 !== idx2) {
-          const cell1 = openCells[idx1];
-          const cell2 = openCells[idx2];
-          const physicalDist = Math.sqrt(
-            Math.pow(cell1[0] - cell2[0], 2) + 
-            Math.pow(cell1[1] - cell2[1], 2)
-          );
-          
-          if (physicalDist > bestRandomDist) {
-            bestRandomDist = physicalDist;
-            bestRandomPair = [idx1, idx2];
-          }
-        }
-      }
-      
+    } else if (realDistance >= minRequiredLength * 1.5) {
+      // If the path is exceptionally long, we can use it even without meeting
+      // the half-size requirement, but add a warning
+      console.log(`Found very long path (${realDistance} steps), using it despite not meeting half-size requirement`);
+      console.log(`Start: [${bestStart[0]}, ${bestStart[1]}], End: [${bestEnd[0]}, ${bestEnd[1]}]`);
+      console.log(`Row difference: ${rowDiff}, Column difference: ${colDiff}`);
+      console.log(`WARNING: This pair doesn't meet the half-size separation requirement`);
       return {
-        start: openCells[bestRandomPair[0]],
-        end: openCells[bestRandomPair[1]]
+        start: bestStart,
+        end: bestEnd
       };
     }
   }
+  
+  // If all else fails, try another approach: pick the furthest point from a random starting point
+  console.log("Standard approach didn't find a long enough path, trying alternative approach");
+  
+  // Pick a random corner as a starting point
+  const cornerIndices = [0, width-1, height*width-width, height*width-1];
+  const possibleCorners = [];
+  
+  // Check each corner and nearby points for open cells
+  for (let cornerY = 0; cornerY < 2; cornerY++) {
+    for (let cornerX = 0; cornerX < 2; cornerX++) {
+      // Calculate the region of this corner
+      const regionMinY = cornerY === 0 ? 1 : Math.max(height - 6, height - Math.floor(height * 0.2) - 1);
+      const regionMaxY = cornerY === 0 ? Math.min(6, Math.floor(height * 0.2)) : height - 2;
+      const regionMinX = cornerX === 0 ? 1 : Math.max(width - 6, width - Math.floor(width * 0.2) - 1);
+      const regionMaxX = cornerX === 0 ? Math.min(6, Math.floor(width * 0.2)) : width - 2;
+      
+      // Find open cells in this corner region
+      for (let y = regionMinY; y <= regionMaxY; y++) {
+        for (let x = regionMinX; x <= regionMaxX; x++) {
+          if (y < height && x < width && grid[y][x] === 0) {
+            possibleCorners.push([y, x]);
+          }
+        }
+      }
+    }
+  }
+  
+  let start, end;
+  
+  if (possibleCorners.length >= 2) {
+    // Pick two corners that are diagonally opposite if possible
+    const idx1 = Math.floor(Math.random() * possibleCorners.length);
+    let bestIdx2 = -1;
+    let maxDiagonalScore = -1;
+    
+    // Find the corner point that's most diagonally opposite (not in same row or column)
+    // Minimum required difference (half the size of the maze)
+    const minRequiredDiff = Math.floor(Math.max(width, height) / 2);
+    
+    for (let i = 0; i < possibleCorners.length; i++) {
+      if (i === idx1) continue;
+      
+      const [y1, x1] = possibleCorners[idx1];
+      const [y2, x2] = possibleCorners[i];
+      
+      // Calculate physical distance
+      const distance = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+      
+      // Calculate row and column differences
+      const rowDiff = Math.abs(y2 - y1);
+      const colDiff = Math.abs(x2 - x1);
+      const minDiff = Math.min(rowDiff, colDiff);
+      
+      // Check if at least one dimension has the required difference
+      // Both row AND column must meet the half-size requirement
+      const hasRequiredSeparation = rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff;
+      
+      // Heavy penalty for not meeting minimum separation requirement
+      const separationPenalty = hasRequiredSeparation ? 0 : 200;
+      
+      // Additional penalty for being in similar row/column
+      const alignmentPenalty = minDiff <= 2 ? 100 - (minDiff * 50) : 0;
+      
+      // Score favors distant points with at least half-maze separation in one dimension
+      const score = distance * 2 - separationPenalty - alignmentPenalty;
+      
+      if (score > maxDiagonalScore) {
+        maxDiagonalScore = score;
+        bestIdx2 = i;
+      }
+    }
+    
+    start = possibleCorners[idx1];
+    end = possibleCorners[bestIdx2 !== -1 ? bestIdx2 : (idx1 + Math.floor(possibleCorners.length/2)) % possibleCorners.length];
+    
+    // Check the actual path length between these corners
+    const result = findFurthestCell(start, [end]);
+    console.log(`Corner-to-corner path length: ${result.distance}`);
+    console.log(`Row difference: ${Math.abs(start[0] - end[0])}, Column difference: ${Math.abs(start[1] - end[1])}`);
+  } else {
+    // Last resort: pick a suitable random cell pair ensuring they're well separated
+    let attempts = 0;
+    let bestStart = null;
+    let bestEnd = null;
+    let bestDistance = -1;
+    let bestSeparationScore = -1;
+    
+    // Minimum required difference (half the size of the maze)
+    const minRequiredDiff = Math.floor(Math.max(width, height) / 2);
+    
+    // Try multiple random starting points to find a good pair
+    while (attempts < 15) {
+      const randomCell = openCells[Math.floor(Math.random() * openCells.length)];
+      const furthestResult = findFurthestCell(randomCell, openCells);
+      
+      if (furthestResult.cell) {
+        const potentialEnd = furthestResult.cell;
+        // Calculate row and column differences
+        const rowDiff = Math.abs(randomCell[0] - potentialEnd[0]);
+        const colDiff = Math.abs(randomCell[1] - potentialEnd[1]);
+        const minDiff = Math.min(rowDiff, colDiff);
+        
+        // Check if at least one dimension has the required difference
+        // Both row AND column must meet the half-size requirement
+        const hasRequiredSeparation = rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff;
+        
+        // Score based on path length and separation
+        const separationScore = hasRequiredSeparation ? 1000 : 0;
+        const alignmentScore = minDiff * 10; // Reward for difference in both dimensions
+        const score = furthestResult.distance + separationScore + alignmentScore;
+        
+        // Keep the best pair found so far, prioritizing those with required separation
+        if ((hasRequiredSeparation && score > bestSeparationScore) || 
+            (!hasRequiredSeparation && bestSeparationScore < 0 && score > bestDistance)) {
+          bestStart = randomCell;
+          bestEnd = potentialEnd;
+          bestDistance = furthestResult.distance;
+          bestSeparationScore = hasRequiredSeparation ? score : -1;
+          
+          // If we found a good pair with required separation, we can stop early
+          if (hasRequiredSeparation && minDiff >= 3 && furthestResult.distance >= minRequiredDiff) {
+            break;
+          }
+        }
+      }
+      attempts++;
+    }
+    
+    if (bestStart && bestEnd) {
+      start = bestStart;
+      end = bestEnd;
+      const rowDiff = Math.abs(start[0] - end[0]);
+      const colDiff = Math.abs(start[1] - end[1]);
+      console.log(`Random-to-furthest path length: ${bestDistance}`);
+      console.log(`Row difference: ${rowDiff}, Column difference: ${colDiff}`);
+      console.log(`At least half-maze separation: ${rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff}`);
+      console.log(`Row separation: ${rowDiff >= minRequiredDiff ? "YES" : "NO"}, Column separation: ${colDiff >= minRequiredDiff ? "YES" : "NO"}`);
+    } else {
+      console.error("Failed to find any valid path, using default corners");
+      // Absolute fallback - ensure they're at opposite sides of the maze
+      // and maintain the half-size separation requirement
+      const minRequiredDiff = Math.floor(Math.max(width, height) / 2);
+      
+      // Position start and end to guarantee they're at least half the maze size apart
+      start = [1, 1];
+      end = [height-2, width-2];
+      
+      // Check if this placement meets our half-size requirement
+      const rowDiff = Math.abs(start[0] - end[0]);
+      const colDiff = Math.abs(start[1] - end[1]);
+      // Both row AND column must meet the half-size requirement
+      const hasRequiredSeparation = rowDiff >= minRequiredDiff && colDiff >= minRequiredDiff;
+      
+      // If not, adjust the end position to ensure half-size separation in BOTH dimensions
+      if (!hasRequiredSeparation) {
+        // Ensure both row and column meet the requirement
+        end = [Math.max(height-2, 1 + minRequiredDiff), Math.max(width-2, 1 + minRequiredDiff)];
+      }
+      
+      console.log(`Fallback positions - Start: [${start[0]}, ${start[1]}], End: [${end[0]}, ${end[1]}]`);
+      console.log(`Row difference: ${Math.abs(start[0] - end[0])}, Column difference: ${Math.abs(start[1] - end[1])}`);
+    }
+  }
+  
+  console.log(`Final start: [${start[0]}, ${start[1]}], end: [${end[0]}, ${end[1]}]`);
+  return { start, end };
 }
 
 /**
@@ -873,11 +1126,11 @@ function generateHedgeMaze(width, height) {
     grid[height - 1][x] = 1;
   }
   
-  // Find optimal start and end points
+  // Find optimal start and end points with enhanced algorithm
   const { start: entrance, end: exit } = findOptimalStartEndPair(grid, height, width);
   
-  // Add some complexity to the maze
-  addMazeComplexity(grid, width, height);
+  // Add strategic complexity to the maze - pass start/end for targeted complexity
+  addMazeComplexity(grid, width, height, { start: entrance, end: exit });
   
   // Break up any large open areas (2x2 squares)
   const initialOpenAreas = breakUpLargeOpenAreas(grid, width, height);
@@ -918,6 +1171,11 @@ function generateHedgeMaze(width, height) {
     }
   }
   
+  // After ensuring connectivity, calculate and display the actual path length
+  // This confirms our start/end placement is creating appropriately long paths
+  const pathLength = calculateActualPathLength(grid, entrance, exit);
+  console.log(`Final path length from start to end: ${pathLength} steps`);
+  
   // Convert to wall list format
   const walls_list = [];
   for (let y = 0; y < height; y++) {
@@ -935,6 +1193,49 @@ function generateHedgeMaze(width, height) {
     end: [exit[0] + 1, exit[1] + 1], // Convert to 1-indexed
     walls: walls_list
   };
+}
+
+/**
+ * Calculate the actual path length from start to end using BFS
+ * @param {Array} grid - The maze grid
+ * @param {Array} start - The starting position [y, x]
+ * @param {Array} end - The ending position [y, x]
+ * @returns {number} The path length in steps (0 if no path exists)
+ */
+function calculateActualPathLength(grid, start, end) {
+  const height = grid.length;
+  const width = grid[0].length;
+  
+  const queue = [[start[0], start[1], 0]]; // [y, x, distance]
+  const visited = new Set(`${start[0]},${start[1]}`);
+  
+  while (queue.length > 0) {
+    const [y, x, dist] = queue.shift();
+    
+    if (y === end[0] && x === end[1]) {
+      return dist;
+    }
+    
+    // Check all four directions
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dy, dx] of directions) {
+      const ny = y + dy;
+      const nx = x + dx;
+      const key = `${ny},${nx}`;
+      
+      if (
+        ny >= 0 && ny < height &&
+        nx >= 0 && nx < width &&
+        grid[ny][nx] === 0 &&
+        !visited.has(key)
+      ) {
+        visited.add(key);
+        queue.push([ny, nx, dist + 1]);
+      }
+    }
+  }
+  
+  return 0; // No path found
 }
 
 /**
@@ -1036,13 +1337,6 @@ function verifyFullConnectivity(grid, start) {
   };
 }
 
-/**
- * Ensure all open cells in the grid are accessible from both start and end
- * @param {Array} grid - The maze grid
- * @param {Array} start - The starting position [y, x]
- * @param {Array} end - The ending position [y, x]
- * @returns {Object} Information about changes made
- */
 /**
  * Ensure all open cells in the grid are accessible from both start and end
  * @param {Array} grid - The maze grid
@@ -1261,6 +1555,15 @@ function main() {
   let attempts = 0;
   const maxAttempts = 20;
   
+  // Determine the filename based on size (e.g., maze1 for size 10, maze2 for size 20)
+  const sizeMultiple = Math.round(size / 10);
+  const defaultFilename = `mazes/maze${sizeMultiple}.json`;
+  
+  // Use provided filename or default to size-based name
+  const finalOutputFile = outputFile === defaultFilename ? outputFile : outputFile;
+  
+  console.log(`Generating maze with size ${size} as ${finalOutputFile}`);
+  
   do {
     console.log(`Attempt ${attempts + 1} to generate a valid maze...`);
     maze = generateHedgeMaze(size, size);
@@ -1318,8 +1621,8 @@ function main() {
   } while (!pathExists(maze));
   
   try {
-    fs.writeFileSync(outputFile, JSON.stringify(maze, null, 2));
-    console.log(`Hedge maze successfully generated and saved to ${outputFile}`);
+    fs.writeFileSync(finalOutputFile, JSON.stringify(maze, null, 2));
+    console.log(`Hedge maze successfully generated and saved to ${finalOutputFile}`);
   } catch (err) {
     console.error(`Error writing to file: ${err.message}`);
     process.exit(1);

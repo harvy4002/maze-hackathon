@@ -131,3 +131,45 @@ Your program must output the solution path as a JavaScript array of coordinate p
 ## Good Luck!
 
 Work as a team, write clean code, and have fun!
+
+## Future Ideas for Maze Enhancement
+
+### Interesting Start and End Point Placement
+
+1. **Diameter-Based Placement**
+   - Find the "diameter" of the maze - the longest possible path between any two cells
+   - Place start and end points at these extreme positions for maximum challenge
+   - Implemented using double BFS approach (first BFS to find farthest point A, second BFS from A to find farthest point B)
+
+2. **Theme-Based Placement**
+   - **Treasure Hunt**: Start at entrance, end at a "treasure room" (small open area)
+   - **Escape Room**: Start in center, end at an edge
+   - **Prison Break**: Start in an isolated "cell", end at an "exit gate"
+
+3. **Constraint-Based Placement**
+   - **Secret Passages**: Add teleportation points between locations
+   - **One-Way Paths**: Include paths traversable in only one direction
+   - **Key-Lock System**: Place "keys" that must be collected before reaching end
+
+4. **Pattern-Based Placement**
+   - **Spiral Pattern**: Start at center, end at outer edge
+   - **Zig-Zag Pattern**: Force multiple traversals across the maze
+   - **Concentric Rings**: Create connected rings, start inside and end outside
+
+5. **Dynamic Difficulty Scaling**
+   - **Small Mazes**: Simple opposite edges
+   - **Medium Mazes**: Diagonal corners
+   - **Large Mazes**: Complex paths requiring backtracking
+
+6. **Island and Bridge Concept**
+   - Create "islands" of open space connected by narrow "bridges"
+   - Start on one island, end on another
+   - Require traversal through multiple islands
+
+7. **Multi-Goal Maze**
+   - Implement checkpoints that must be visited in sequence
+   - Each checkpoint requires different solving strategy
+
+8. **False Goal Maze**
+   - Add multiple potential endpoints with only one being correct
+   - Include clues within maze structure to indicate true exit
