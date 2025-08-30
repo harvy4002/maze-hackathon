@@ -1,7 +1,17 @@
+````markdown
 # Maze Runner Project - Conversation Summary
 
 ## Project Overview
-This project is a maze generator and solver system, with a focus on implementing different maze generation algorithms.
+This project is a maze generator and solver system, with a focus on implementing different maze generation algorithms. It now includes a competition framework for testing and comparing maze-solving algorithms.
+
+## Competition
+The project now features a maze-solving competition where participants create algorithms to navigate through progressively challenging mazes. See [COMPETITION.md](./COMPETITION.md) for complete details.
+
+The competition includes:
+- Multiple maze types from standard hedge mazes to specialized anti-bot mazes
+- Increasingly difficult challenges that test algorithm adaptability
+- A scoring system based on correctness and speed
+- A structured evaluation process for fair comparison
 
 ## Key Components
 
@@ -39,6 +49,19 @@ This project is a maze generator and solver system, with a focus on implementing
    - Uses randomized Prim's algorithm for generation
    - Has natural hedge-like features with dead ends and branching paths
    - Ensures no long runs along the edges
+
+2. **Simple Anti-Bot Maze**: A maze specifically designed to challenge pathfinding algorithms
+   - Creates deceptive paths that exploit A* heuristics
+   - Includes memory-intensive regions with many branching paths
+   - Adds strategic loops to confuse algorithms
+   - Places start and end points to maximize path complexity
+
+3. **Challenge Maze**: A highly sophisticated maze designed to exploit weaknesses in common pathfinding algorithms
+   - Features a large open area in the middle to confuse heuristic-based algorithms
+   - Includes heuristic traps that initially move toward the goal but lead away
+   - Creates narrow winding passages that force sequential traversal
+   - Implements complex memory-intensive regions
+   - Places start and end points in opposite corners to maximize path length
 
 ## Implementation Details
 
@@ -98,6 +121,10 @@ This project is a maze generator and solver system, with a focus on implementing
   - Added penalties for points that don't meet the half-size requirement in both dimensions
 - Used both path distance and physical (diagonal) distance to optimize the point selection
 - Included fallback mechanisms when strict distance criteria can't be met
+- Created new maze generators designed to challenge bot algorithms:
+  - `simple_anti_bot_maze.js`: Creates mazes with deceptive paths and strategic loops
+  - `challenge_maze_gen.js`: Implements sophisticated traps like heuristic traps and memory-intensive regions
+- Designed a competition framework for comparing maze-solving algorithms
 
 ## Testing
 - Successfully generated and solved mazes of various sizes (10x10, 20x20, 30x30, 40x40)

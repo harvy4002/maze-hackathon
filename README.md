@@ -1,7 +1,9 @@
 
+````markdown
+
 # Maze Hackathon
 
-Welcome to the Maze Hackathon! In this 2-hour challenge, teams of intermediate to senior JavaScript developers will compete to build a solution that can navigate a series of coded mazes.
+Welcome to the Maze Hackathon! In this challenge, teams of intermediate to senior JavaScript developers will compete to build a solution that can navigate a series of coded mazes.
 
 ## Objective
 
@@ -9,11 +11,21 @@ Your goal is to create a JavaScript program that reads a maze file, finds a path
 
 ## Project Structure
 
-- `maze1.json`, `maze2.json`, `maze3.json`: Example maze files
+- `maze1.json`, `maze2.json`, etc.: Example maze files
 - `gen_prim_maze.js`: Maze generator using Prim's algorithm
+- `simple_anti_bot_maze.js`: Generator for anti-bot mazes
+- `challenge_maze_gen.js`: Generator for advanced challenge mazes
 - `bot.js`: Example bot to solve mazes using A* or BFS
+- `failing-bot.js`: Example of a bot that makes mistakes
 - `verify.js`: Verifies if a solution path is valid
 - `visualise.js`: Visualizes mazes and solution paths
+- `validate_solution.js`: Validates competition solutions
+- `generate_solution.js`: Helper to generate solution files
+- `COMPETITION.md`: Competition rules and details
+
+## Competition
+
+We now have a maze-solving competition! See [COMPETITION.md](./COMPETITION.md) for complete details. The competition includes multiple maze types from standard hedge mazes to specialized anti-bot mazes designed to challenge common pathfinding algorithms.
 
 ## Rules
 
@@ -125,8 +137,38 @@ Your program must output the solution path as a JavaScript array of coordinate p
 
 ## Algorithms
 
-- **Maze Generation:** Modified Prim's algorithm with guaranteed connectivity
+- **Maze Generation:** 
+  - **Hedge Maze**: Modified Prim's algorithm with guaranteed connectivity
+  - **Anti-Bot Maze**: Designed to exploit weaknesses in common pathfinding algorithms
+  - **Challenge Maze**: Advanced maze with heuristic traps and memory-intensive regions
+  
 - **Path Finding:** A* algorithm with Manhattan distance heuristic (falls back to BFS if needed)
+
+## Competition Tools
+
+The repository includes several tools to help with the competition:
+
+### Generate a Solution
+
+```
+node generate_solution.js <maze_file> <output_file> <team_name> <algorithm_name>
+```
+
+Example:
+```
+node generate_solution.js mazes/challenge_maze_100.json solutions/team1_solution.json "Team Awesome" "Modified A* with Memory Optimization"
+```
+
+### Validate a Solution
+
+```
+node validate_solution.js <maze_file> <solution_file>
+```
+
+Example:
+```
+node validate_solution.js mazes/challenge_maze_100.json solutions/team1_solution.json
+```
 
 ## Good Luck!
 
