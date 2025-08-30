@@ -1,7 +1,6 @@
 # Ignore bot output and logs
-maze-hackathon/bot.js
-maze-hackathon/bot_output.txt
-maze-hackathon/*.out
+visualise.js
+bot.js
 # Node modules
 node_modules/
 # OS/Editor files
