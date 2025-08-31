@@ -20,6 +20,26 @@ Participants will receive:
 - Example visualizations of the mazes
 - A validation script to verify your solutions
 
+### How to Access Competition Materials
+
+All competition materials are available through our GitHub repository:
+```
+https://github.com/harvy4002/maze-hackathon
+```
+
+You can clone the repository using:
+```
+git clone https://github.com/harvy4002/maze-hackathon.git
+```
+
+Alternatively, download the ZIP package from the repository's main page.
+
+The repository contains:
+- `mazes/` - Directory containing all maze JSON files
+- `templates/` - Solution template files
+- `verify.js` - Script for verifying your solutions
+- `validate_solution.js` - Comprehensive validation script
+
 ## Maze Format
 
 Each maze is provided as a JSON file with the following structure:
@@ -53,28 +73,38 @@ The difficulty increases progressively across maze types and sizes.
 
 Your solution will be scored based on:
 
-1. **Correctness** (70%): Did your algorithm find the correct path?
-   - Solutions that go through walls are disqualified
-   - Solutions that don't reach the end point receive 0 points
+1. **Maze Solving**: 3 points for each correctly solved and verified maze
+   
+2. **Verification**: 1 point for each maze solution you verify for another team
+   
+3. **Penalties**: -5000 points for any incorrect verification
 
-2. **Speed** (30%): How quickly did your algorithm solve each maze?
-   - Total execution time across all mazes
-   - Time is measured from when your algorithm starts to when it outputs a solution
+4. **Bonus Points**: Additional points awarded for the fastest solutions to challenge mazes
 
 ## Submission Requirements
 
-Your submission should include:
+Your submission should include solution files for each maze you solve:
 
-1. **Source Code**: Your maze-solving algorithm implementation
-2. **README**: Documentation explaining:
-   - The algorithm(s) used
-   - How to run your solution
-   - Any optimizations made for different maze types
-   - Runtime and space complexity analysis
+1. **Solution Files**: For each maze, provide a solution file following the template format:
+   ```json
+   {
+     "team": "YOUR_TEAM_NAME",
+     "mazeName": "MAZE_FILE_NAME",
+     "path": [
+       "(r1c1)",
+       "(r1c2)",
+       "..."
+     ],
+     "executionTime": 0.00
+   }
+   ```
 
-3. **Output File**: For each maze, provide a solution file with:
-   - The path taken from start to end as a sequence of coordinates
-   - The execution time
+2. **File Naming**: Name your solution files according to the pattern: `[TEAM_NAME]_[MAZE_NAME]_solution.json`
+
+3. **Validation**: All solutions must pass validation using the provided validation scripts:
+   ```
+   node validate_solution.js mazes/maze1.json your_solution.json
+   ```
 
 ## Technical Constraints
 
@@ -114,24 +144,6 @@ The competition includes 3 levels of increasing difficulty:
 3. **Consider memory optimization** for larger mazes
 4. **Test your solution** against all provided maze types
 5. **Focus on robustness** rather than optimizing for a specific maze type
-
-## Timeline
-
-- Registration Deadline: [Date]
-- Submission Deadline: [Date]
-- Results Announcement: [Date]
-
-## Prizes
-
-- 1st Place: [Prize details]
-- 2nd Place: [Prize details]
-- 3rd Place: [Prize details]
-- Special recognition for most innovative algorithm
-
-## Contact
-
-For questions or clarifications, please contact [organizer contact details].
-
 ---
 
 Good luck, and may the best algorithm win!

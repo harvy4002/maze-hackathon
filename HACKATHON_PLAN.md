@@ -38,21 +38,35 @@ A fast-paced 1.5-hour challenge where 60 engineers in teams compete to create al
   - Each move can only be to adjacent cells (no diagonals)
   - Format for solutions: array of coordinates [(r1,c1), (r2,c2), ...]
 - Scoring criteria:
-  - 1 point for each correctly solved maze
-  - Bonus points for fastest solution times
+  - 3 points for each correctly solved and verified maze
+  - 1 point for each maze solution you verify for another team
+  - -5000 points penalty for any incorrect verification
+  - Bonus points for fastest solutions to challenge mazes
+- Continuous submission process:
+  - Teams can submit solutions at any time during the hackathon
+  - Leaderboard will be updated continuously as solutions are verified
+  - Submit solutions as soon as they're ready for potential early points
 - Cross-team validation process explanation:
+  - Teams will exchange solutions with another team for validation
+  - Validating teams will verify correctness of paths and solution times
+  - Each team needs to create a validation function to check another team's solutions
+- Final Q&A before starting
   - Teams will exchange solutions with another team for validation
   - Validating teams will verify correctness of paths and solution times
   - Each team needs to create a validation function to check another team's solutions
 - Final Q&A before starting
 
 ### Coding Session 1 (25 minutes) - 0:10-0:35
-**Focus:** Understanding maze format and implementing basic algorithms
+**Focus:** Understanding maze format, visualization, and implementing basic algorithms
 
 **Expected Checkpoint #1:** 
 - Parse maze JSON file format
+- Implement maze visualization to understand maze structure
 - Implement a basic pathfinding algorithm (BFS, DFS, A*)
 - Successfully solve at least one simple maze (10x10 or 20x20)
+
+**Announcement at 0:20:**
+"By this point, teams should be working on visualizing the mazes to understand their structure. Visualization is key to developing effective solutions."
 
 **Announcement at 0:35:**
 "You should now have a basic algorithm working and be able to solve at least the smallest maze. Let's see a quick show of hands - how many teams have solved at least one maze?"
@@ -61,6 +75,9 @@ A fast-paced 1.5-hour challenge where 60 engineers in teams compete to create al
 - Brief status update from each team
 - Clarification of any common issues encountered
 - Introduction of the next set of mazes (medium difficulty)
+- Reminder about continuous submission:
+  - "Remember to submit your solutions as soon as they're ready"
+  - "The leaderboard will be updated throughout the hackathon"
 
 ### Coding Session 2 (25 minutes) - 0:40-1:05
 **Focus:** Optimization and tackling larger, more complex mazes
@@ -70,24 +87,27 @@ A fast-paced 1.5-hour challenge where 60 engineers in teams compete to create al
 - Implement optimizations to handle anti-bot features
 - Successfully solve medium-sized mazes (50x50)
 - Begin working on challenge mazes
+- Continue submitting solutions as they are completed
+
+**Announcement at 0:50:**
+"Check the leaderboard for current standings. Remember to submit your solutions as soon as they're ready!"
 
 **Announcement at 1:00:**
 "You have 5 minutes left in this session. Make sure you're validating your solutions and keeping track of which mazes you've solved and your solving times."
 
 ### Final Sprint and Cross-Team Validation (5 minutes) - 1:05-1:10
-**Focus:** Solution preparation for validation
+**Focus:** Solution finalization and validation
 
 **Teams should:**
-- Finalize and test all solutions
-- Prepare solution files for cross-team validation:
-  - For each solved maze, create a solution file with path coordinates
-  - Include solving times for each maze
-  - Prepare brief summary of approach
+- Finalize and test all remaining solutions
+- Submit any final solutions for validation
+- Prepare brief summary of approach
 
 **Cross-Team Validation Process:**
 - Teams will be paired (Team A validates Team B's solutions, Team B validates Team C's, etc.)
-- Each team shares their solution files with their assigned validation team
+- Each team validates solutions submitted by their assigned team
 - Validating teams use their validation algorithm to verify solutions
+- Final leaderboard updates are made with latest submissions
 
 ### Team Experience Sharing (20 minutes) - 1:10-1:30
 - Cross-team validation results sharing (5 minutes):
@@ -104,8 +124,11 @@ A fast-paced 1.5-hour challenge where 60 engineers in teams compete to create al
 
 ### Leaderboard Reveal and Wrap-up (Remaining time)
 - Display updated leaderboard with:
-  - Team rankings by number of mazes solved
-  - Fastest solution for each maze
+  - Team rankings based on total points:
+    - 3 points per solved maze
+    - 1 point per verification performed
+    - -5000 points per incorrect verification
+  - Fastest solutions for challenge mazes with bonus points
   - Recognition for innovative approaches
 - Announcement of top 3 teams
 - Final thoughts and feedback collection
@@ -146,6 +169,7 @@ Teams will validate their partner team's solutions based on the following criter
      - Path connects start to end
    - Teams confirm reported solving time is reasonable
    - Any discrepancies should be discussed between teams
+   - Remember: Incorrect verifications result in a -5000 point penalty
 
 3. **Reporting Format:**
    ```
@@ -178,20 +202,27 @@ Teams will validate their partner team's solutions based on the following criter
 1. **Maze Distribution:**
    - Provide all maze files at the beginning
    - Make the maze format clear with an example
-   - Consider providing a simple visualization script if time permits
+   - Include a simple visualization script to help teams visualize the mazes
 
-2. **During the Hackathon:**
+2. **Continuous Submission Management:**
+   - Set up a central submission system (e.g., shared folder or web form)
+   - Designate a person to process submissions and update leaderboard
+   - Establish a clear process for cross-team validation of submissions
+   - Update the leaderboard at regular intervals (every 10-15 minutes)
+
+3. **During the Hackathon:**
    - Have technical helpers available for questions
    - Give time warnings at 15-minute intervals
    - Ensure teams understand the validation requirements
+   - Regularly remind teams about continuous submission option
 
-3. **Cross-Team Validation Management:**
+4. **Cross-Team Validation Management:**
    - Create and distribute team pairing assignments before the final sprint
    - Provide a standardized validation reporting form
    - Mediate any disputes between teams about solution validity
    - Collect validated results for leaderboard update
 
-4. **Post-Hackathon:**
+5. **Post-Hackathon:**
    - Share winning approaches with all teams
    - Consider publishing leaderboard and best solutions
    - Collect feedback for future iterations
