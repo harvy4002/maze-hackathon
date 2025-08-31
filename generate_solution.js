@@ -4,7 +4,7 @@
  * This script demonstrates how to generate a properly formatted solution file
  * for the competition. It runs your algorithm on a maze and records the execution time.
  * 
- * Usage: node generate_solution.js <maze_file> <output_file> <team_name> <algorithm_name>
+ * Usage: node generate_solution.js <maze_file> <output_file> <team_name>
  * 
  * NOTE: Replace the solveMaze function with your own maze-solving algorithm.
  */
@@ -12,15 +12,15 @@
 const fs = require('fs');
 
 // Validate command line arguments
-if (process.argv.length < 6) {
-  console.error('Usage: node generate_solution.js <maze_file> <output_file> <team_name> <algorithm_name>');
+if (process.argv.length < 5) {
+  console.error('Usage: node generate_solution.js <maze_file> <output_file> <team_name>');
   process.exit(1);
 }
 
 const mazeFile = process.argv[2];
 const outputFile = process.argv[3];
 const teamName = process.argv[4];
-const algorithmName = process.argv[5];
+// Algorithm name is now optional and not used in the solution file
 
 /**
  * Generate a solution for a maze
@@ -36,6 +36,18 @@ function generateSolution() {
     process.exit(1);
   }
 
+  // Read the solution template
+  let templateSolution;
+  try {
+    const templatePath = './templates/solution_template.json';
+    const templateData = fs.readFileSync(templatePath, 'utf8');
+    templateSolution = JSON.parse(templateData);
+  } catch (err) {
+    console.error(`Error reading template file: ${err.message}`);
+    console.log('Continuing with default solution structure...');
+    templateSolution = { team: "", mazeName: "", path: [], executionTime: 0 };
+  }
+
   console.log(`Solving maze: ${mazeFile}`);
   console.log(`Start: (r${maze.start[0]}c${maze.start[1]}), End: (r${maze.end[0]}c${maze.end[1]})`);
   
@@ -48,11 +60,18 @@ function generateSolution() {
   
   console.log(`Solution found in ${executionTime}ms`);
   
-  // Create the solution object
+  // Convert path to R1C1 notation
+  const r1c1Path = convertToR1C1Notation(path);
+  
+  // Extract maze file name from the path
+  const mazeFileName = mazeFile.split('/').pop();
+  
+  // Create the solution object using the template
   const solution = {
+    ...templateSolution,
     team: teamName,
-    algorithm: algorithmName,
-    path: path,
+    mazeName: mazeFileName,
+    path: r1c1Path,
     executionTime: parseFloat(executionTime)
   };
   
@@ -60,6 +79,10 @@ function generateSolution() {
   try {
     fs.writeFileSync(outputFile, JSON.stringify(solution, null, 2));
     console.log(`Solution saved to ${outputFile}`);
+    
+    // Also print the R1C1 notation path to console
+    const r1c1String = `[${r1c1Path.join(',')}]`;
+    console.log(`R1C1 Solution Path: ${r1c1String}`);
   } catch (err) {
     console.error(`Error writing solution file: ${err.message}`);
     process.exit(1);
@@ -215,6 +238,15 @@ function reconstructPath(cameFrom, current, start) {
   }
   
   return path;
+}
+
+/**
+ * Convert a path to R1C1 notation
+ * @param {Array} path - Array of coordinates [row, col]
+ * @returns {Array} Array of strings in R1C1 notation
+ */
+function convertToR1C1Notation(path) {
+  return path.map(pos => `(r${pos[0]}c${pos[1]})`);
 }
 
 // Run the solution generator

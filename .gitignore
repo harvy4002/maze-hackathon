@@ -1,6 +1,3 @@
-# Ignore bot output and logs
-visualise.js
-bot.js
 # Node modules
 node_modules/
 # OS/Editor files

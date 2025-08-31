@@ -1,0 +1,257 @@
+/* Enhanced styles for the Maze Runner Leaderboard */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #1a1a1a;
+  color: #eee;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background-color: #222;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  font-size: 3.5em;
+  color: #4CAF50;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.subtitle {
+  font-size: 1.5em;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.last-updated {
+  font-style: italic;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+/* Main leaderboard table */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background-color: #333;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 18px 15px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+tr:nth-child(even) {
+  background-color: #3a3a3a;
+}
+
+tr:hover {
+  background-color: #444;
+}
+
+/* Rank column */
+.rank {
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.3em;
+  width: 70px;
+}
+
+/* Medal colors for top three */
+.gold {
+  background-color: #FFD700 !important;
+  color: #222;
+}
+
+.silver {
+  background-color: #C0C0C0 !important;
+  color: #222;
+}
+
+.bronze {
+  background-color: #CD7F32 !important;
+  color: #222;
+}
+
+/* Team name column */
+.team-name {
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* Stats columns */
+.stats {
+  text-align: center;
+  font-size: 1.1em;
+}
+
+/* Points column */
+.points {
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.3em;
+  color: #000;
+}
+
+/* Details toggle button */
+.toggle-details {
+  cursor: pointer;
+  color: #4CAF50;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+/* Team details section */
+.team-details {
+  display: none;
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 5px;
+  margin: 10px 20px 20px 20px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.team-details h3 {
+  color: #4CAF50;
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
+/* Team summary section */
+.team-summary {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.team-summary p {
+  margin: 5px 0;
+  font-size: 1.1em;
+}
+
+.team-summary strong {
+  color: #4CAF50;
+}
+
+/* Solution details table */
+.solution-table {
+  width: 100%;
+  margin-top: 15px;
+  background-color: #2a2a2a;
+  border-collapse: collapse;
+}
+
+.solution-table th {
+  background-color: #555;
+  padding: 12px;
+  font-size: 1em;
+}
+
+.solution-table td {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+}
+
+/* Performance visualization */
+.performance-bar-container {
+  width: 100%;
+  height: 14px;
+  background-color: #444;
+  border-radius: 7px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.performance-bar {
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 7px;
+}
+
+/* Stats section */
+.stats-section {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card {
+  text-align: center;
+  padding: 15px;
+  background-color: #3a3a3a;
+  border-radius: 8px;
+  width: 22%;
+}
+
+.stat-card h3 {
+  color: #4CAF50;
+  margin-top: 0;
+}
+
+.stat-value {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animated {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Responsive adjustments for big screens */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1800px;
+  }
+  
+  h1 {
+    font-size: 4em;
+  }
+  
+  th, td {
+    padding: 25px 20px;
+    font-size: 1.3em;
+  }
+  
+  .rank {
+    font-size: 1.6em;
+  }
+}

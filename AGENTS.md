@@ -1,8 +1,10 @@
 ````markdown
+`````markdown
+````markdown
 # Maze Runner Project - Conversation Summary
 
 ## Project Overview
-This project is a maze generator and solver system, with a focus on implementing different maze generation algorithms. It now includes a competition framework for testing and comparing maze-solving algorithms.
+This project is a maze generator and solver system, with a focus on implementing different maze generation algorithms. It now includes a competition framework for testing and comparing maze-solving algorithms, along with a leaderboard system for tracking team performance.
 
 ## Competition
 The project now features a maze-solving competition where participants create algorithms to navigate through progressively challenging mazes. See [COMPETITION.md](./COMPETITION.md) for complete details.
@@ -12,8 +14,62 @@ The competition includes:
 - Increasingly difficult challenges that test algorithm adaptability
 - A scoring system based on correctness and speed
 - A structured evaluation process for fair comparison
+- A leaderboard system for tracking team performance during the competition
+
+## Project Structure
+The project is now organized into the following folder structure:
+
+```
+mazerunner/
+├── mazes/                 # Contains all maze JSON files
+│   ├── maze1.json
+│   ├── maze2.json
+│   └── ...
+├── leaderboard/           # Leaderboard system
+│   ├── data/              # Storage for leaderboard data
+│   │   └── leaderboard.json
+│   ├── public/            # Web assets
+│   │   └── leaderboard.css
+│   ├── leaderboard.js     # Main leaderboard script
+│   └── add_verification_point.js
+├── solutions/             # Team solutions
+│   ├── Team_Name_1/
+│   │   └── solution_files.json
+│   └── Team_Name_2/
+│       └── solution_files.json
+└── [other project files]
+```
 
 ## Key Components
+
+### Leaderboard System
+The project includes a web-based leaderboard system to track team performance during the competition:
+
+#### Leaderboard Components
+1. **Main Leaderboard Script (`leaderboard/leaderboard.js`)**
+   - Updates leaderboard with team solutions
+   - Starts a web server to display the leaderboard
+   - Validates solutions and awards points
+   - Organizes solutions in the solutions directory
+
+2. **Verification Points System (`leaderboard/add_verification_point.js`)**
+   - Allows adding points to teams for verifying other teams' solutions
+   - Provides both command-line and interactive interfaces
+   - Updates the leaderboard with verification points
+
+3. **Web Interface**
+   - Displays a real-time leaderboard with auto-refresh
+   - Ranks teams based on total points, mazes solved, and execution time
+   - Highlights top teams with gold, silver, and bronze
+   - Shows detailed statistics for each team
+
+#### Scoring System
+- Teams earn 3 points for each successfully solved maze
+- Teams earn 1 point for each verified solution from another team
+- Teams are ranked by total points, then by mazes solved, then by average execution time
+
+#### Usage
+See [LEADERBOARD.md](./LEADERBOARD.md) for complete details on using the leaderboard system.
 
 ### Hedge Maze Generator (`gen_prim_maze.js`)
 - Implemented a hedge maze generator using Prim's algorithm
@@ -125,6 +181,12 @@ The competition includes:
   - `simple_anti_bot_maze.js`: Creates mazes with deceptive paths and strategic loops
   - `challenge_maze_gen.js`: Implements sophisticated traps like heuristic traps and memory-intensive regions
 - Designed a competition framework for comparing maze-solving algorithms
+- Implemented a comprehensive leaderboard system:
+  - Created a web-based leaderboard to display team rankings and statistics
+  - Implemented a scoring system (3 points per solved maze, 1 point per verification)
+  - Developed a verification points tracking system
+  - Reorganized the project structure with dedicated folders for leaderboard, solutions, and mazes
+  - Added documentation for using the leaderboard system (LEADERBOARD.md)
 
 ## Testing
 - Successfully generated and solved mazes of various sizes (10x10, 20x20, 30x30, 40x40)
@@ -135,6 +197,12 @@ The competition includes:
   - This creates more challenging mazes that require traversal across significant portions of the grid
   - Tested with 30x30 maze showing row difference of 28 and column difference of 27 (both exceeding half-size of 15.5)
 - Test on larger mazes showed solution path lengths of 50+ steps, creating appropriately challenging puzzles
+- Tested the leaderboard system:
+  - Successfully added team solutions to the leaderboard
+  - Verified that points are awarded correctly (3 points per solved maze)
+  - Tested the verification points system (1 point per verification)
+  - Confirmed the web server displays the leaderboard correctly
+  - Verified that the leaderboard updates when new solutions are added
 
 ## Testing Strategy: GTV Protocol (Generate-Test-Visualize)
 
@@ -173,6 +241,26 @@ node visualise.js [maze_file] "$solution_path"
 - Confirms start and end points are correctly positioned
 - Displays maze statistics including dimensions, open cells, and walls
 
+### Step 4: Leaderboard Testing
+```bash
+# Start the leaderboard web server
+node leaderboard/leaderboard.js serve
+
+# Add a solution to the leaderboard
+node leaderboard/leaderboard.js update path/to/solution.json
+
+# Add a verification point to a team
+node leaderboard/add_verification_point.js "Team Name"
+
+# Process all solutions in the solutions directory
+node leaderboard/leaderboard.js process-all
+```
+- Verifies that the leaderboard system is working correctly
+- Confirms that points are calculated and displayed properly
+- Tests the web interface and auto-refresh functionality
+- Ensures solutions are stored in the correct locations
+- Validates the verification points system
+
 ### Success Criteria
 - Maze is fully connected (all open cells reachable from start)
 - Solution exists between start and end points
@@ -180,3 +268,8 @@ node visualise.js [maze_file] "$solution_path"
 - Both row and column differences between start and end points are at least half the maze size
 - Visual inspection confirms proper maze structure
 - Generation, solving, and visualization complete without errors
+- Leaderboard correctly displays team rankings based on points
+- Points are calculated correctly (3 points per solved maze, 1 point per verification)
+- Solutions are properly stored in the solutions directory
+- Web interface is responsive and visually appealing
+`````

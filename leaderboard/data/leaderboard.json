@@ -1,0 +1,79 @@
+{
+  "teams": [
+    {
+      "name": "Maze Masters",
+      "solutions": [
+        {
+          "team": "Maze Masters",
+          "mazeName": "maze1.json",
+          "pathLength": 9,
+          "executionTime": 18.67,
+          "timestamp": "2025-08-31T22:04:13.930Z",
+          "valid": true
+        },
+        {
+          "team": "Maze Masters",
+          "mazeName": "maze3.json",
+          "pathLength": 15,
+          "executionTime": 22.45,
+          "timestamp": "2025-08-31T22:06:16.350Z",
+          "valid": true
+        },
+        {
+          "team": "Maze Masters",
+          "mazeName": "maze5.json",
+          "pathLength": 23,
+          "executionTime": 40.12,
+          "timestamp": "2025-08-31T22:07:10.448Z",
+          "valid": true
+        }
+      ],
+      "totalSolved": 3,
+      "points": 9,
+      "averageExecutionTime": 27.080000000000002
+    },
+    {
+      "name": "Algorithm Aces",
+      "solutions": [
+        {
+          "team": "Algorithm Aces",
+          "mazeName": "maze2.json",
+          "pathLength": 13,
+          "executionTime": 30.42,
+          "timestamp": "2025-08-31T22:04:17.410Z",
+          "valid": true
+        },
+        {
+          "team": "Algorithm Aces",
+          "mazeName": "maze4.json",
+          "pathLength": 19,
+          "executionTime": 35.18,
+          "timestamp": "2025-08-31T22:06:47.415Z",
+          "valid": true
+        }
+      ],
+      "totalSolved": 2,
+      "points": 7,
+      "averageExecutionTime": 32.8,
+      "verificationPoints": 1
+    },
+    {
+      "name": "Speed Demons",
+      "solutions": [
+        {
+          "team": "Speed Demons",
+          "mazeName": "maze1.json",
+          "pathLength": 9,
+          "executionTime": 25.31,
+          "timestamp": "2025-08-31T22:04:10.093Z",
+          "valid": true
+        }
+      ],
+      "totalSolved": 1,
+      "points": 5,
+      "averageExecutionTime": 25.31,
+      "verificationPoints": 2
+    }
+  ],
+  "lastUpdated": "2025-08-31T22:12:26.666Z"
+}
